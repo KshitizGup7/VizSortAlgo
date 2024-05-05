@@ -1,0 +1,417 @@
+package Sorting;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.geom.Rectangle2D;
+import java.util.Random;
+
+import javax.swing.*;
+
+public class Main extends JPanel implements ActionListener{
+	
+	private static final long serialVersionUID = 1l;
+	private final int WIDTH = 1000;
+	private final int HEIGHT = WIDTH*9/16;
+	private static int SIZE = 1;
+	private float BAR_WIDTH =(float)WIDTH/SIZE;
+	private int[] bar_height = new int[SIZE];
+	private SwingWorker<Void,Void> shuffler,sorter;
+	private int current_index, trav_index;
+	static JSlider slider;
+	static JButton start;
+	JComboBox option;
+	public int sortIndex;
+	public int speed = 5;
+	
+	private Main() {
+		setBackground(Color.black);
+		setPreferredSize(new Dimension(WIDTH,HEIGHT));
+		start = new JButton("Start");
+		start.setBounds(450, 410, 100, 50);
+		start.setBackground(Color.BLACK);
+		start.setForeground(Color.cyan);
+		start.addActionListener(this);
+		add(start);
+		
+		slider = new JSlider(JSlider.HORIZONTAL,0,250,240);
+		slider.setMinorTickSpacing(5); 
+		slider.setMajorTickSpacing(10);  
+		slider.setPaintTicks(true);  
+		slider.setPaintLabels(true); 
+		slider.setPaintTicks(true);
+		slider.setBackground(Color.black);
+		slider.setForeground(Color.cyan);
+		slider.setBounds(150, 150, 750, 50);
+		
+		String sorter[]={"Insertion","Bubble","Selection","Merge","QuickSort","Radix"};    
+		option = new JComboBox(sorter);
+		option.setBackground(Color.black);
+		option.setForeground(Color.cyan);
+		option.setBounds(420,250,150,40);
+		add(option);
+		
+		add(slider);
+		
+	}
+
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+		SwingUtilities.invokeLater(()->{
+			JFrame frame = new JFrame("SORTING VISULIZER");
+			frame.setResizable(false);
+			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			
+			frame.setContentPane(new Main());
+			frame.validate();
+			frame.setLayout(null);
+			frame.pack();
+			frame.setLocationRelativeTo(null);
+			frame.setVisible(true);
+			
+		});
+		
+	}
+	
+	
+	
+	@Override
+	public void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		
+		Graphics2D g2d = (Graphics2D)g;
+		g2d.setColor(Color.CYAN);
+		Rectangle2D.Float bar;
+		for(int i=0;i<SIZE;i++) {
+			bar = new Rectangle2D.Float(i*BAR_WIDTH, 0, BAR_WIDTH, bar_height[i]);
+			g2d.draw(bar);
+		}
+		g2d.setColor(new Color(139, 0, 0));
+		bar = new Rectangle2D.Float(current_index*BAR_WIDTH, 0, BAR_WIDTH, bar_height[current_index]);
+		
+		g2d.fill(bar);
+		
+		g2d.setColor(new Color(229, 228, 226));
+		bar = new Rectangle2D.Float(trav_index*BAR_WIDTH, 0, BAR_WIDTH, bar_height[trav_index]);
+		
+		g2d.fill(bar);
+	}
+	
+	private void initBarHeight() {
+		// TODO Auto-generated method stub
+		float interval = (float)HEIGHT/SIZE;
+		for(int i=0;i<SIZE;i++) {
+			bar_height[i] = (int) (i*interval);
+		}
+	}
+	
+	private void initshuffler() {
+		// TODO Auto-generated method stub
+		shuffler = new SwingWorker<>() {
+			@Override
+			public Void doInBackground() {
+				int middle=SIZE/2;
+				for(int i=0, j=middle; i<middle; i++,j++) {
+					int random_index = new Random().nextInt(SIZE);
+					swap(i, random_index);
+					
+					random_index = new Random().nextInt(SIZE);
+					swap(j, random_index);
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					repaint();
+				}
+				return null;
+			}
+			@Override
+			public void done() {
+				super.done();
+				sorter.execute();
+			}
+		};
+		shuffler.execute();
+		
+	}
+	
+
+	private void initInsertion() {
+		// TODO Auto-generated method stub
+		sorter = new SwingWorker<>() {
+			@Override
+			public Void doInBackground() {
+				for(current_index =1; current_index<SIZE;current_index++) {
+					trav_index = current_index;
+					while(trav_index>0 && bar_height[trav_index]< bar_height[trav_index-1]) {
+						swap(trav_index, trav_index-1);
+						trav_index--;
+						try {
+							Thread.sleep(speed);
+							
+							repaint();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				current_index=0;
+				trav_index=0;
+				return null;
+			}
+		};
+		
+	}
+	
+	
+	private void initBubble() {
+		// TODO Auto-generated method stub
+		sorter = new SwingWorker<>() {
+			@Override
+			public Void doInBackground() {
+				for(current_index =1; current_index<SIZE;current_index++) {
+					for(trav_index =0; trav_index < SIZE - current_index - 1; trav_index++) {
+						if(bar_height[trav_index] > bar_height[trav_index+1])
+							swap(trav_index, trav_index+1);
+						try {
+							Thread.sleep(speed);
+							repaint();
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+				current_index=0;
+				trav_index=0;
+				return null;
+			}
+		};
+		
+	}
+	
+	private void initSelection() {
+		// TODO Auto-generated method stub
+		sorter = new SwingWorker<>() {
+			@Override
+			public Void doInBackground() {
+				for(current_index =0; current_index<SIZE-1 ;current_index++) {
+					int min = current_index;
+					for(trav_index = current_index; trav_index < SIZE; trav_index++) {
+						if(bar_height[trav_index] < bar_height[min])
+							min = trav_index;
+						try {
+							Thread.sleep(speed);
+							repaint();
+							
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+						swap(current_index, min);
+				}
+				//repaint();
+				current_index=0;
+				trav_index=0;
+				return null;
+			}
+		};
+		
+	}
+	
+	public void initQuick() {	
+		sorter = new SwingWorker<>() {
+			@Override
+			public Void doInBackground() {
+				int left = 0;
+				int right = SIZE - 1;
+				int middle = (left + right) / 2;
+				int pivot = medianOfThree(left, middle, right);
+				quickSort(pivot, left, right);
+				
+				trav_index = 0;	// reset traversing index
+				current_index = 0;	
+				return null;// reset current index
+			}
+		};
+	}
+	
+	private void quickSort(int pivot, int start, int end) {
+		if(start >= end)	return;
+		
+		int selected_index = start - 1;
+		swap(pivot, end);
+		pivot = end;
+		
+		current_index = pivot;
+		for(trav_index = start; trav_index < pivot; trav_index++) {
+				
+			if(bar_height[trav_index] < bar_height[pivot])
+				swap(++selected_index, trav_index);
+			
+			try {
+				repaint();
+				Thread.sleep(speed);
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		int new_pivot_pos = selected_index + 1;
+		swap(new_pivot_pos, pivot);
+		
+		// quick sort the left side
+		int less_middle = (start + selected_index) / 2;
+		int less_pivot = medianOfThree(start, less_middle, selected_index);
+		quickSort(less_pivot, start, selected_index);
+		
+		// quick sort the right side
+		int greater_start = new_pivot_pos + 1;
+		int greater_middle = (greater_start + end) / 2;
+		int greater_pivot = medianOfThree(greater_start, greater_middle, end);
+		quickSort(greater_pivot, greater_start, end);
+	}
+	
+	
+	private int medianOfThree(int a, int b, int c) {
+		double left		= bar_height[a];
+		double middle	= bar_height[b];
+		double right	= bar_height[c];
+		
+		if((left > middle) != (left > right))
+			return a;
+		else if((middle > left) != (middle > right))	
+			return b;
+		else
+			return c;
+	}
+
+	public void initMerge() {	
+		sorter = new SwingWorker<>() {
+			@Override
+			public Void doInBackground() {
+				mergeSort(0, SIZE-1);
+				
+				trav_index= 0;
+				current_index	= 0;
+				repaint();	
+				return null;// reset current index
+			}
+		};
+	}
+
+	private void mergeSort(int start, int end) {
+		if(start == end) return;
+		
+		// add one since the last element is inclusive
+		int lookup_length = end - start + 1;
+		// start serves as offset
+		int middle = ((lookup_length) / 2) + start;
+		
+		// subtract 1 to make middle exclusive on left and inclusive on right
+		mergeSort(start, middle - 1);
+		mergeSort(middle, end);
+		
+		current_index = start;
+		merge(start, middle, end);
+	}
+
+	private void merge(int start, int middle, int end) {
+		int lookup_length = end - start + 1;
+		int[] temp = new int[lookup_length];
+		
+		// copies elements from array to temp
+		// note that temp = array should not be used since it will create a pointer
+		// to the array therefore, changing temp would reflect on array (main)
+		for(int i = 0; i < lookup_length; i++)
+			temp[i] = bar_height[start + i];
+		
+		// start serves as offset on the main array but not on temp
+		int temp_middle = middle - start;
+		int a_ptr = start;
+		int l_ptr = 0;
+		int r_ptr = temp_middle; 
+		
+		while(l_ptr < temp_middle && r_ptr < temp.length) {
+				
+			trav_index= l_ptr + start;
+			
+			if(temp[l_ptr] < temp[r_ptr])
+				bar_height[a_ptr] = temp[l_ptr++];
+			else
+				bar_height[a_ptr] = temp[r_ptr++];
+			
+			try {
+				a_ptr++;
+				repaint();
+				Thread.sleep(speed);
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// copy remaining elements 
+		while(l_ptr < temp_middle) {
+			try {
+				trav_index= l_ptr + start;
+				repaint();
+				Thread.sleep(speed);
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			bar_height[a_ptr++] = temp[l_ptr++];
+		}
+		
+		while(r_ptr < temp.length) {
+			
+			try {
+				repaint();
+				Thread.sleep(speed);
+			} catch(InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			bar_height[a_ptr++] = temp[r_ptr++];
+		}		
+	}
+
+	private void swap(int indexA, int indexB) {
+		// TODO Auto-generated method stub
+		float temp = bar_height[indexA];
+		bar_height[indexA] = bar_height[indexB];
+		bar_height[indexB] = (int) temp;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		SIZE = slider.getValue();
+		BAR_WIDTH= (float)WIDTH/SIZE;
+		bar_height = new int[SIZE];
+		sortIndex = option.getSelectedIndex();
+
+		option.setVisible(false);
+		slider.setVisible(false);
+		start.setVisible(false);
+		
+		initBarHeight();
+		initshuffler();
+		if(sortIndex == 0)
+			initInsertion();
+		if(sortIndex == 1)
+			initBubble();
+		if(sortIndex == 2)
+			initSelection();
+		if(sortIndex == 3)
+			initMerge();
+		if(sortIndex == 4)
+			initQuick();
+//		if(sortIndex == 5)
+//			initRadix();
+		
+	}
+}
